@@ -15,7 +15,7 @@ local autohide = ui_options.get("video/hud/autohide_stamina_bar")
 
 local RENDERER = get_console_cmd(0,"renderer")
 local STATIC_LIGHT = 'renderer_r1'
-local IS_R1 = (RENDERER == STATIC_LIGHT)
+local IS_R1 = true --(RENDERER == STATIC_LIGHT)
 local STATIC_VINGETTE = false -- for +R2 - if true, it will draw vingette instead of relying on r2_mask_control
 local STATIC_MASK = true -- For R1 - if true, it will ignore distortion shader and use old mask overlay
 
@@ -845,8 +845,12 @@ function Update_Mask(actor)
 			helm_respi = opt.helmets[sec].respi
 			helm_name = helmet:name()
 			
-			helm_fx[2] = opt.helmets_vingette[helm_hud_pre] or 0.0
-			helm_fx[3] = opt.enable_visor_reflection and opt.helmets_reflect[helm_hud_pre] and 1.0 or 0.0
+			helm_fx[2] = opt.helmets_vingette[helm_hud_pre] or 0.0			
+			if opt.enable_visor_reflection and opt.helmets_reflect[helm_hud_pre] then
+			  helm_fx[3] = 1.0
+			else
+			  helm_fx[3] = 0.0
+                        end
 			helm_fx[4] = 1.0
 		end
 	end
@@ -858,12 +862,13 @@ function Update_Mask(actor)
 		helm_fx[3] = 0.0
 		helm_fx[4] = 0.0
 		HUD_mask(false, false, false)
+		exec_console_cmd("r2_mask_control " .. tostring(helm_fx[1]) .. "," .. tostring(helm_fx[2]) .. "," .. tostring(helm_fx[3]) .. "," .. tostring(helm_fx[4]))
 	else
 		HUD_mask(helm_hud, helm_name, helm_respi)
 	end
 	
 	-- Set distortion, vingette, reflection effect for +R2
-	if (not IS_R1) and ((helm_fx[1] ~= helm_fx_old[1]) or (helm_fx[2] ~= helm_fx_old[2]) or (helm_fx[3] ~= helm_fx_old[3]) or (helm_fx[4] ~= helm_fx_old[4])) then
+	if IS_R1 and ((helm_fx[1] ~= helm_fx_old[1]) or (helm_fx[2] ~= helm_fx_old[2]) or (helm_fx[3] ~= helm_fx_old[3]) or (helm_fx[4] ~= helm_fx_old[4])) then
 		helm_fx_old[1] = helm_fx[1]
 		helm_fx_old[2] = helm_fx[2]
 		helm_fx_old[3] = helm_fx[3]
